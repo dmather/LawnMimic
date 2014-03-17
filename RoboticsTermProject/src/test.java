@@ -20,6 +20,7 @@ import lejos.robotics.mapping.OccupancyGridMap;
 import lejos.robotics.objectdetection.RangeFeatureDetector;
 import lejos.robotics.objectdetection.FeatureListener;
 import lejos.robotics.objectdetection.Feature;
+import lejos.robotics.localization.OdometryPoseProvider;
 
 public class test
 {
