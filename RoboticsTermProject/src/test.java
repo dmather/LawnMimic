@@ -114,9 +114,14 @@ public class test
 		// On our bot backward is forward.
 		//pilot.backward();
 		//pilot.rotate(90);
-		pilot.travel(-100);
-		LCD.drawString("Moved: " + pilot.getMovementIncrement(), 0, 6);
-		LCD.drawString("Range Aft: " + rangeAdapter.getRange(), 0, 4);
+		//pilot.travel(-100);
+		//LCD.drawString("Moved: " + pilot.getMovementIncrement(), 0, 6);
+		//LCD.drawString("Range Aft: " + rangeAdapter.getRange(), 0, 4);
+		// Forward is backward
+		pilot.backward();
+		mymapper mapper = new mymapper(rangeAdapter, map, pilot);
+		mapper.run();
+		
 		Button.waitForAnyPress();
 	}
 }
