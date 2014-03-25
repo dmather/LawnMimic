@@ -41,39 +41,6 @@ public class DetectedObjectListener implements FeatureListener
             {
                 System.exit(0);
             }
-            double distance = Math.abs(pilot.getMovementIncrement() + bot_length*2);
-            LCD.drawString("Travel Dist: " + distance, 0, 3);
-            pilot.stop();
-            
-            // Iterate through the map...
-            for(int x = 0; x <= bot_width; x += 5)
-            {
-            	for(int y = 0; y <= map.getHeight(); y += 5)
-            	{
-            		if(y <= distance/5)
-            		{
-            			LCD.clear(4);
-            			map.setOccupied(x, y, 0);
-            			LCD.drawString("Not Occ: " + x + "," + y, 0, 4);
-            		}
-            		else
-            		{
-            			LCD.clear(5);
-            			map.setOccupied(x, (int)(distance/5)+1, 1);
-            			LCD.drawString("Occ" + x + "," + (int)(distance/5)+1,
-            					0, 5);
-            		}
-            	}
-            }
-            // Avoid obstacle...sorta.. (note this doesn't work for walls
-            // (obviously)
-            pilot.rotate(90);
-            pilot.travel(bot_length*1.5*-1);
-            pilot.rotate(-90);
-            pilot.travel(bot_length*1.5*-1);
-            pilot.rotate(-90);
-            pilot.travel(bot_length*1.5*-1);
-            pilot.rotate(90);
             pilot.backward();
         }
     }
