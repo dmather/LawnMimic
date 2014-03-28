@@ -21,6 +21,9 @@ import lejos.robotics.objectdetection.RangeFeatureDetector;
 import lejos.robotics.objectdetection.FeatureListener;
 import lejos.robotics.objectdetection.Feature;
 import lejos.robotics.localization.OdometryPoseProvider;
+import lejos.hardware.sensor.HiTechnicCompass;
+import lejos.robotics.DirectionFinder;
+import lejos.robotics.DirectionFinderAdaptor;
 
 public class test
 {
@@ -118,7 +121,23 @@ public class test
 		//LCD.drawString("Moved: " + pilot.getMovementIncrement(), 0, 6);
 		//LCD.drawString("Range Aft: " + rangeAdapter.getRange(), 0, 4);
 		// Forward is backward
-		pilot.backward();
+		//pilot.backward();
+		
+		HiTechnicCompass compass = new HiTechnicCompass(SensorPort.S4);
+		// Instantiate a new compass adaptor so we can get a direction.
+		DirectionFinderAdaptor dir = new DirectionFinderAdaptor(compass.getCompassMode());
+		
+		// Slow down our rotation for calibration
+		pilot.setRotateSpeed(40);
+		// Start the calibration, we need to rotate at least 2 times, in 40 seconds
+		dir.startCalibration();
+		// Rotate two full circles
+		// TODO: figure out how many degrees 720 actually is
+		pilot.rotate(720);
+		dir.stopCalibration();
+		
+		LCD.drawString("Direction: " + dir.getDegreesCartesian(), 0, 6);
+		
 		mymapper mapper = new mymapper(rangeAdapter, map, pilot);
 		mapper.run();
 		

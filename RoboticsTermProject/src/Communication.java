@@ -16,6 +16,7 @@ import java.io.IOException;
 
 public class Communication
 {
+	// TODO: Use appropriate generic names
 	//private RemoteEV3 Marth;
 	private ServerSocket serv;
 	private DataInputStream in;
