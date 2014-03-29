@@ -57,6 +57,9 @@ public class test
 		OccupancyGridMap map = new OccupancyGridMap(ARENA_LENGTH, ARENA_WIDTH,
 				OCCUPIED_THRESHOLD, FREE_THRESHOLD, ARENA_PRECISION);
 		
+		// Print the height of the map
+		LCD.drawString("Height: " + map.getHeight(), 0, 1);
+		
 		// 0 is not occupied and 1 is occupied
 		// Mark the space that the bot occupies at the start as not occupied
 		for(int x = 0; x <= BOT_WIDTH; x +=5)
@@ -81,18 +84,18 @@ public class test
 		RangeFinderAdaptor rangeAdapter = new RangeFinderAdaptor(
 				range.getDistanceMode());
 	
-		while(true)
-		{
+		//while(true)
+		//{
 			// TODO: Find out what the hell units this returns, it's definitely not CM
 			// It appears to be in decimeters, and is somewhat accurate at closer ranges
 			// perhaps +/- 10%.
-			double myRange = rangeAdapter.getRange();
-			LCD.drawString("Range: " + myRange, 0, 5);
-			int button = Button.waitForAnyPress();
-			if(button != 2)
-				break;
-			LCD.clear();
-		}
+			//double myRange = rangeAdapter.getRange();
+			//LCD.drawString("Range: " + myRange, 0, 5);
+			//int button = Button.waitForAnyPress();
+			//if(button != 2)
+			//	break;
+			//LCD.clear();
+		//}
 		
 		// Set up a feature detector with the range adapter and a min/max
 		// distance
@@ -109,11 +112,6 @@ public class test
 		//double current_pos = length;
 		//LCD.drawString("Dist to edge: " + length, 0, 1);
 
-		// Set speed to 10cm/s and then move 50cm
-		pilot.setAcceleration(MOTOR_ACCELERATION);
-		pilot.setRotateSpeed(ROTATE_SPEED);
-		pilot.setTravelSpeed(MOVE_SPEED);
-		
 		// On our bot backward is forward.
 		//pilot.backward();
 		//pilot.rotate(90);
@@ -128,19 +126,67 @@ public class test
 		DirectionFinderAdaptor dir = new DirectionFinderAdaptor(compass.getCompassMode());
 		
 		// Slow down our rotation for calibration
-		pilot.setRotateSpeed(40);
+		pilot.setRotateSpeed(90);
 		// Start the calibration, we need to rotate at least 2 times, in 40 seconds
 		dir.startCalibration();
 		// Rotate two full circles
 		// TODO: figure out how many degrees 720 actually is
-		pilot.rotate(720);
+		pilot.rotate(7450);
 		dir.stopCalibration();
 		
-		LCD.drawString("Direction: " + dir.getDegreesCartesian(), 0, 6);
+		try
+		{
+			// Sleep for two seconds
+			Thread.sleep(2000);
+		}
+		catch(InterruptedException e)
+		{
+			// If an error happens we still need to close the compass
+			// and any other sensors that are open for that matter.
+			compass.close();
+			return;
+		}
+		
+		//while(true)
+		//{
+		//	
+		//	LCD.drawString("Direction: " + dir.getDegreesCartesian(), 0, 6);
+		//	if(Button.waitForAnyPress() == 2)
+		//		break;
+		//	LCD.clear(6);
+		//}
+		
+		// Set speed to 10cm/s and then move 50cm
+		pilot.setAcceleration(MOTOR_ACCELERATION);
+		pilot.setRotateSpeed(ROTATE_SPEED);
+		pilot.setTravelSpeed(MOVE_SPEED);
 		
 		mymapper mapper = new mymapper(rangeAdapter, map, pilot);
-		mapper.run();
+		//mapper.run();
+		
+		// Set zero to be going forward (all directions now reference this
+		// as being zero).
+		dir.resetCartesianZero();
+				
+		pilot.travel(-100);
+		// Positive rotations are CW and negative are CCW
+		pilot.rotate(-931.25);
+		pilot.travel(-10);
+		pilot.rotate(-931.25);
+		
+		LCD.drawString("Direction: " + dir.getDegreesCartesian(), 0, 6);
+		float heading = dir.getDegreesCartesian();
 		
 		Button.waitForAnyPress();
+		
+		while(heading < 175.0 || heading > 185.0)
+		{
+			// Try and correct itself, it may go all the way around in
+			// a circle.
+			pilot.rotate(1);
+		}
+		
+		// close the sensors that we're using
+		compass.close();
 	}
 }

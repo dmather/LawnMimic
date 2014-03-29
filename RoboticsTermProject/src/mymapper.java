@@ -1,3 +1,4 @@
+import lejos.hardware.lcd.LCD;
 import lejos.robotics.mapping.OccupancyGridMap;
 import lejos.robotics.RangeFinderAdaptor;
 import lejos.robotics.navigation.DifferentialPilot;
@@ -28,23 +29,24 @@ public class mymapper implements Runnable
 	public void run()
 	{
 		// Get me the distance since we started moving..
-		while(true)
-		{
+		//while(true)
+		//{
 			// Sleep for 250ms...should be enough for some movement
 			// before recalculating position of obstruction.
-			try
-			{
-				Thread.sleep(250);
-			}
-			catch(InterruptedException e)
-			{
-				return;
-			}
+		//	try
+		//	{
+		//		Thread.sleep(250);
+		//	}
+		//	catch(InterruptedException e)
+		//	{
+		//		return;
+		//	}
 			
-			double distance = myPilot.getMovementIncrement();
-			double dist_to_object = myRange.getRange();
+		//	double distance = myPilot.getMovementIncrement();
+		//	double dist_to_object = myRange.getRange();
 			
-			System.out.println("This is a thread!");
-		}
+		//	System.out.println("This is a thread!");
+		//}
+		LCD.drawString("This is a thread!", 0, 5);
 	}
 }
