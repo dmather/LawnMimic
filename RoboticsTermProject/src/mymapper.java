@@ -13,6 +13,7 @@ public class mymapper implements Runnable
 	private RangeFinderAdaptor myRange;
 	private OccupancyGridMap myMap;
 	private DifferentialPilot myPilot;
+	private volatile boolean finished = false;
 	
 	// Constructor for this thread, we need some local copies of the
 	// differential pilot, the range adaptor, and the map. (We'll 
@@ -25,28 +26,32 @@ public class mymapper implements Runnable
 		this.myPilot = pilot;
 	}
 	
+	public void set_finished(boolean finished)
+	{
+		this.finished = finished;
+	}
+	
 	// Method that is actually called to run a thread
 	public void run()
 	{
 		// Get me the distance since we started moving..
-		//while(true)
-		//{
+		while(!finished)
+		{
 			// Sleep for 250ms...should be enough for some movement
 			// before recalculating position of obstruction.
-		//	try
-		//	{
-		//		Thread.sleep(250);
-		//	}
-		//	catch(InterruptedException e)
-		//	{
-		//		return;
-		//	}
+			try
+			{
+				Thread.sleep(250);
+			}
+			catch(InterruptedException e)
+			{
+				return;
+			}
 			
-		//	double distance = myPilot.getMovementIncrement();
-		//	double dist_to_object = myRange.getRange();
+			double distance = myPilot.getMovementIncrement();
+			double dist_to_object = myRange.getRange();
 			
-		//	System.out.println("This is a thread!");
-		//}
-		LCD.drawString("This is a thread!", 0, 5);
+			LCD.drawString("This is a thread!", 0, 4);
+		}
 	}
 }
