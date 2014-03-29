@@ -125,27 +125,7 @@ public class test
 		// Instantiate a new compass adaptor so we can get a direction.
 		DirectionFinderAdaptor dir = new DirectionFinderAdaptor(compass.getCompassMode());
 		
-		// Slow down our rotation for calibration
-		pilot.setRotateSpeed(90);
-		// Start the calibration, we need to rotate at least 2 times, in 40 seconds
-		dir.startCalibration();
-		// Rotate two full circles
-		// TODO: figure out how many degrees 720 actually is
-		pilot.rotate(7450);
-		dir.stopCalibration();
-		
-		try
-		{
-			// Sleep for two seconds
-			Thread.sleep(2000);
-		}
-		catch(InterruptedException e)
-		{
-			// If an error happens we still need to close the compass
-			// and any other sensors that are open for that matter.
-			compass.close();
-			return;
-		}
+		calibrate_compass(dir, pilot);
 		
 		//while(true)
 		//{
@@ -161,32 +141,85 @@ public class test
 		pilot.setRotateSpeed(ROTATE_SPEED);
 		pilot.setTravelSpeed(MOVE_SPEED);
 		
-		mymapper mapper = new mymapper(rangeAdapter, map, pilot);
+		Thread mapper = new Thread(new mymapper(rangeAdapter, map, pilot));
+		mapper.setDaemon(true);
 		//mapper.run();
+		
+		try
+		{
+			// Sleep for two seconds
+			Thread.sleep(10000);
+		}
+		catch(InterruptedException e)
+		{
+			return;
+		}
 		
 		// Set zero to be going forward (all directions now reference this
 		// as being zero).
 		dir.resetCartesianZero();
-				
-		pilot.travel(-100);
+		
+		// Units are in cm
+		pilot.travel(convert_cm_to_mm(-100));
 		// Positive rotations are CW and negative are CCW
 		pilot.rotate(-931.25);
-		pilot.travel(-10);
+		pilot.travel(convert_cm_to_mm(-1));
 		pilot.rotate(-931.25);
 		
 		LCD.drawString("Direction: " + dir.getDegreesCartesian(), 0, 6);
-		float heading = dir.getDegreesCartesian();
 		
 		Button.waitForAnyPress();
 		
-		while(heading < 175.0 || heading > 185.0)
-		{
-			// Try and correct itself, it may go all the way around in
-			// a circle.
-			pilot.rotate(1);
-		}
-		
 		// close the sensors that we're using
 		compass.close();
+	}
+	
+	public static void correct_angle(double orig_heading,
+			DifferentialPilot pilot,
+			DirectionFinderAdaptor dir)
+	{
+		pilot.setRotateSpeed(400);
+		float heading = dir.getDegreesCartesian();
+		
+		while(heading < 175.0 || heading > 185.0)
+		{
+			// Try and correct itself in small increments, it may go all the way around in
+			// a circle.
+			pilot.rotate(5);
+			heading = dir.getDegreesCartesian();
+		}
+	}
+	
+	public static void calibrate_compass(DirectionFinderAdaptor dir,
+			DifferentialPilot pilot)
+	{
+		// Slow down our rotation for calibration
+		pilot.setRotateSpeed(90);
+		// Start the calibration, we need to rotate at least 2 times, in 40 seconds
+		dir.startCalibration();
+		// Rotate two full circles
+		// TODO: figure out how many degrees 720 actually is
+		pilot.rotate(7450);
+		dir.stopCalibration();
+				
+		try
+		{
+			// Sleep for two seconds
+			Thread.sleep(2000);
+		}
+		catch(InterruptedException e)
+		{
+			return;
+		}
+	}
+	
+	public static double convert_mm_to_cm(double mm)
+	{
+		return mm/10;
+	}
+	
+	public static double convert_cm_to_mm(double cm)
+	{
+		return cm*10;
 	}
 }
