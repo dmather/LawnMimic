@@ -24,7 +24,6 @@ import lejos.robotics.localization.OdometryPoseProvider;
 import lejos.hardware.sensor.HiTechnicCompass;
 import lejos.robotics.DirectionFinder;
 import lejos.robotics.DirectionFinderAdaptor;
-
 import java.util.HashMap;
 
 public class test
@@ -51,7 +50,7 @@ public class test
 	static final int BOT_LENGTH = 30;
 	static final int OCCUPIED_THRESHOLD = 1;
 	static final int FREE_THRESHOLD = 0;
-	// Hashmap for angles
+	// Hashmap for rotatin angles
 	static HashMap<Integer, Double> rotation; 
 
 	public static void main(String[] args)
@@ -169,7 +168,7 @@ public class test
 		dir.resetCartesianZero();
 		
 		// Units are in cm
-		pilot.travel(convert_cm_to_mm(-100));
+		pilot.travel(convert_cm_to_mm(-10));
 		// Positive rotations are CW and negative are CCW
 		pilot.rotate(-1*rotation.get(90));
 		pilot.travel(convert_cm_to_mm(-1));
@@ -184,6 +183,7 @@ public class test
 		
 		// close the sensors that we're using
 		compass.close();
+		range.close();
 	}
 	
 	public static void correct_angle(DifferentialPilot pilot,
@@ -211,6 +211,8 @@ public class test
 		dir.startCalibration();
 		// Rotate two full circles
 		// TODO: figure out how many degrees 720 actually is
+		// 720 is 8 90 degree rotations, look at the 90 degree declaration in
+		// rotate to see what 90 degrees actually is.
 		pilot.rotate(8*rotation.get(90));
 		dir.stopCalibration();
 				
