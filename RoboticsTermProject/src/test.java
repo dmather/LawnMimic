@@ -25,6 +25,8 @@ import lejos.hardware.sensor.HiTechnicCompass;
 import lejos.robotics.DirectionFinder;
 import lejos.robotics.DirectionFinderAdaptor;
 
+import java.util.HashMap;
+
 public class test
 {
 	/*
@@ -49,6 +51,8 @@ public class test
 	static final int BOT_LENGTH = 30;
 	static final int OCCUPIED_THRESHOLD = 1;
 	static final int FREE_THRESHOLD = 0;
+	// Hashmap for angles
+	static HashMap<Integer, Double> rotation; 
 
 	public static void main(String[] args)
 	{
@@ -70,6 +74,11 @@ public class test
 			}
 		}		
 		
+		rotation = new HashMap<Integer, Double>();
+		// We're gonna have use this 90 to map out our iterations or 90
+		// rotations.
+		rotation.put(90, new Double(931.25));
+		
 		// Instantiate a new differential pilot
 		// It should be noted that the differential pilot
 		// was not designed for use with tracked vehicles
@@ -83,7 +92,7 @@ public class test
 		// Set up the range adapter using the IR sensors distance mode
 		RangeFinderAdaptor rangeAdapter = new RangeFinderAdaptor(
 				range.getDistanceMode());
-	
+		
 		//while(true)
 		//{
 			// TODO: Find out what the hell units this returns, it's definitely not CM
@@ -162,20 +171,22 @@ public class test
 		// Units are in cm
 		pilot.travel(convert_cm_to_mm(-100));
 		// Positive rotations are CW and negative are CCW
-		pilot.rotate(-931.25);
+		pilot.rotate(-1*rotation.get(90));
 		pilot.travel(convert_cm_to_mm(-1));
-		pilot.rotate(-931.25);
+		pilot.rotate(-1*rotation.get(90));
 		
 		LCD.drawString("Direction: " + dir.getDegreesCartesian(), 0, 6);
 		
 		Button.waitForAnyPress();
 		
+		// Make any corrections
+		correct_angle(pilot, dir);
+		
 		// close the sensors that we're using
 		compass.close();
 	}
 	
-	public static void correct_angle(double orig_heading,
-			DifferentialPilot pilot,
+	public static void correct_angle(DifferentialPilot pilot,
 			DirectionFinderAdaptor dir)
 	{
 		pilot.setRotateSpeed(400);
@@ -185,7 +196,8 @@ public class test
 		{
 			// Try and correct itself in small increments, it may go all the way around in
 			// a circle.
-			pilot.rotate(5);
+			// rotation is a hashmap that contains an approximate value for 90 degrees
+			pilot.rotate(rotation.get(90)/18);
 			heading = dir.getDegreesCartesian();
 		}
 	}
@@ -199,7 +211,7 @@ public class test
 		dir.startCalibration();
 		// Rotate two full circles
 		// TODO: figure out how many degrees 720 actually is
-		pilot.rotate(7450);
+		pilot.rotate(8*rotation.get(90));
 		dir.stopCalibration();
 				
 		try
