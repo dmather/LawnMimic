@@ -1,10 +1,10 @@
 /*
  * Author: Daniel Mather
  * Purpose: Some testing code for our COMP-3012 term project...
- * testing out more advanced concepts.
+ * testing out more advanced concepts. 
  */
 
-// Just some fooling around
+// Giant block of imports
 import lejos.hardware.Button;
 import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.Motor;
@@ -52,6 +52,8 @@ public class test
 	static final int FREE_THRESHOLD = 0;
 	// Hashmap for rotatin angles
 	static HashMap<Integer, Double> rotation; 
+	static Thread mapper;
+	static private double heading;
 
 	public static void main(String[] args)
 	{
@@ -75,7 +77,8 @@ public class test
 		
 		rotation = new HashMap<Integer, Double>();
 		// We're gonna have use this 90 to map out our iterations or 90
-		// rotations.
+		// rotations. I'd like to know why this number is 900 something
+		// but I suppose I'll probably never know.
 		rotation.put(90, new Double(931.25));
 		
 		// Instantiate a new differential pilot
@@ -149,9 +152,7 @@ public class test
 		pilot.setRotateSpeed(ROTATE_SPEED);
 		pilot.setTravelSpeed(MOVE_SPEED);
 		
-		Thread mapper = new Thread(new mymapper(rangeAdapter, map, pilot));
-		mapper.setDaemon(true);
-		//mapper.run();
+		//mapper = new Thread(new mymapper(rangeAdapter, map, pilot));
 		
 		try
 		{
@@ -168,40 +169,55 @@ public class test
 		dir.resetCartesianZero();
 		
 		// Units are in cm
-		pilot.travel(convert_cm_to_mm(-10));
-		// Positive rotations are CW and negative are CCW
-		pilot.rotate(-1*rotation.get(90));
-		pilot.travel(convert_cm_to_mm(-1));
-		pilot.rotate(-1*rotation.get(90));
+		for(int i = 0; i<15; i++)
+		{
+			LCD.clear(6);
+			pilot.travel(convert_cm_to_mm(-15));
+			float rot = 90;
+			set_direction(rot);
+			pilot.rotate(rotation.get(90));
+			// Make any corrections
+			correct_angle(pilot, dir, rot);
+			LCD.drawString("Direction: " + dir.getDegreesCartesian(), 0, 6);
+		}
 		
-		LCD.drawString("Direction: " + dir.getDegreesCartesian(), 0, 6);
+		//mapper.run();
+		// Positive rotations are CW and negative are CCW
+		
+		//pilot.travel(convert_cm_to_mm(-1));
+		//pilot.rotate(-1*rotation.get(90));
+		
+		
 		
 		Button.waitForAnyPress();
-		
-		// Make any corrections
-		correct_angle(pilot, dir);
 		
 		// close the sensors that we're using
 		compass.close();
 		range.close();
 	}
 	
+	// A method that will be able to be used to make course corrections
 	public static void correct_angle(DifferentialPilot pilot,
-			DirectionFinderAdaptor dir)
+			DirectionFinderAdaptor dir, double angle)
 	{
 		pilot.setRotateSpeed(400);
-		float heading = dir.getDegreesCartesian();
+		double t_direc = get_direction()+angle;
+		LCD.drawString("Dir: " + t_direc, 0, 4);
 		
-		while(heading < 175.0 || heading > 185.0)
+		double cur_direc = dir.getDegreesCartesian();
+		
+		while(cur_direc < t_direc-5 || cur_direc > t_direc+5)
 		{
 			// Try and correct itself in small increments, it may go all the way around in
 			// a circle.
 			// rotation is a hashmap that contains an approximate value for 90 degrees
 			pilot.rotate(rotation.get(90)/18);
-			heading = dir.getDegreesCartesian();
+			cur_direc = dir.getDegreesCartesian();
 		}
+		set_direction(dir.getDegreesCartesian());
 	}
 	
+	// Perform the steps to calibrate the compass before we can use it
 	public static void calibrate_compass(DirectionFinderAdaptor dir,
 			DifferentialPilot pilot)
 	{
@@ -210,7 +226,6 @@ public class test
 		// Start the calibration, we need to rotate at least 2 times, in 40 seconds
 		dir.startCalibration();
 		// Rotate two full circles
-		// TODO: figure out how many degrees 720 actually is
 		// 720 is 8 90 degree rotations, look at the 90 degree declaration in
 		// rotate to see what 90 degrees actually is.
 		pilot.rotate(8*rotation.get(90));
@@ -227,6 +242,16 @@ public class test
 		}
 	}
 	
+	public static double get_direction()
+	{
+		return heading;
+	}
+	
+	public static void set_direction(float dir)
+	{
+		heading = dir;
+	}
+	
 	public static double convert_mm_to_cm(double mm)
 	{
 		return mm/10;
@@ -236,4 +261,6 @@ public class test
 	{
 		return cm*10;
 	}
+	
+	
 }
