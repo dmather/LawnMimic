@@ -24,8 +24,13 @@ import lejos.robotics.localization.OdometryPoseProvider;
 import lejos.hardware.sensor.HiTechnicCompass;
 import lejos.robotics.DirectionFinder;
 import lejos.robotics.DirectionFinderAdaptor;
+
 import java.util.HashMap;
 import java.lang.Math;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.Stack;
 
 public class test
 {
@@ -41,8 +46,8 @@ public class test
 	// Note it doesn't behave this way. Differential pilot and tracks
 	// do not play well.
 	static final double TRACK_LENGTH = 30f;
-	static final int ARENA_LENGTH = 115;
-	static final int ARENA_WIDTH = 115;
+	static final int ARENA_LENGTH = 115/5;
+	static final int ARENA_WIDTH = 115/5;
 	static final int ARENA_PRECISION = 5;
 	static final int MOVE_SPEED = 25;
 	static final int MOTOR_ACCELERATION = 400;
@@ -64,6 +69,7 @@ public class test
 	// this is in x, y
 	static final double[] BOT_ORIGIN = {BOT_WIDTH/2, BOT_LENGTH/2};
 	static double[] POS = BOT_ORIGIN;
+	static String MAP_FILE = "/map.csv";
 
 	public static void main(String[] args)
 	{
@@ -99,7 +105,7 @@ public class test
 		int fixed_travel_amount = 5;
 		
 		// This loop will move forward (or in the height attribute for our map)
-		for(double distance_moved = 0; distance_moved + BOT_LENGTH + 5 < map.getHeight(); distance_moved += fixed_travel_amount)
+		for(double distance_moved = 0; distance_moved + BOT_LENGTH + 5 < map.getHeight()*5; distance_moved += fixed_travel_amount)
 		{
 			LCD.drawString("Dist Moved: " + distance_moved, 0, 2);
 			cur_x =  (int)POS[0]/5;
@@ -110,7 +116,7 @@ public class test
 				LCD.drawString("Range: " + obj_range, 0, 4);
 				LCD.drawString("POS: " + POS[0] + "," + POS[1], 0, 3);
 				// Assume increments are in 5cm
-				for(int i = cur_x + (int)obj_range/5; i<map.getWidth()/5; i+=5)
+				for(int i = cur_x + (int)obj_range/5; i<=map.getWidth(); i+=5)
 				{
 					try
 					{
@@ -136,42 +142,56 @@ public class test
 		// 
 		pilot.rotate(rotation.get(90)*-1);
 		
+		int occupied_num;
+		
 		// This loop will move forward (or in the height attribute for our map)
-				for(double distance_moved = 0; distance_moved + BOT_WIDTH + 15 < map.getWidth(); distance_moved += fixed_travel_amount)
+		for(double distance_moved = 0; distance_moved + BOT_WIDTH + 15 < map.getWidth()*5; distance_moved += fixed_travel_amount)
+		{
+			LCD.drawString("Dist Moved: " + distance_moved, 0, 2);
+			cur_x =  (int)POS[0]/5;
+			cur_y = (int)POS[1]/5;
+			obj_range = convert_dm_to_cm(rangeAdapter.getRange()) + RANGE_SENSOR_OFFSET;
+			if(obj_range < SENSOR_MAX_RANGE)
+			{
+				LCD.drawString("Range: " + obj_range, 0, 4);
+				LCD.drawString("POS: " + cur_x + "," + cur_y, 0, 3);
+				// Assume increments are in 5cm
+				for(int i = cur_y + (int)obj_range/5; i<=map.getHeight(); i+=5)
 				{
-					LCD.drawString("Dist Moved: " + distance_moved, 0, 2);
-					cur_x =  (int)POS[0]/5;
-					cur_y = (int)POS[1]/5;
-					obj_range = convert_dm_to_cm(rangeAdapter.getRange()) + RANGE_SENSOR_OFFSET;
-					if(obj_range < SENSOR_MAX_RANGE)
+					try
 					{
-						LCD.drawString("Range: " + obj_range, 0, 4);
-						LCD.drawString("POS: " + cur_x + "," + cur_y, 0, 3);
-						// Assume increments are in 5cm
-						for(int i = cur_y + (int)obj_range/5; i<map.getHeight()/5; i+=5)
-						{
-							try
-							{
-								// Sleep for half a second
-								Thread.sleep(500);
-							}
-							catch(InterruptedException e)
-							{
-								return;
-							}
-							LCD.clear(5);
-							map.setOccupied(cur_x, i, 1);
-							LCD.drawString("Pos: " + i + "," + cur_y + " occupid", 0, 5);
-						}
+						// Sleep for half a second
+						Thread.sleep(500);
 					}
-					pilot.travel(convert_cm_to_mm(-fixed_travel_amount));
-					moved_x(fixed_travel_amount);
-					LCD.clear(4);
-					LCD.clear(3);
-					LCD.clear(2);
+					catch(InterruptedException e)
+					{
+						return;
+					}
+					LCD.clear(5);
+					occupied_num = map.getOccupied(cur_x, i);
+					if(occupied_num == 1)
+					{
+						map.setOccupied(cur_x, i, occupied_num += 1);
+						LCD.drawString("Pos: " + i + "," + cur_y + " occupied", 0, 5);
+					}
+					else
+					{
+						map.setOccupied(cur_x, i, 1);
+					}
 				}
+				pilot.travel(convert_cm_to_mm(-fixed_travel_amount));
+				moved_x(fixed_travel_amount);
+				LCD.clear(4);
+				LCD.clear(3);
+				LCD.clear(2);
+			}
+		}
+		
+		output_map(map);
 		
 		range.close();
+		
+		
 		
 		// Need return so we don't run other code...
 		if(Button.waitForAnyPress() > 0)
@@ -389,5 +409,39 @@ public class test
 		grid_pos[0] = (int)distance_x/5;
 		grid_pos[1] = (int)distance_y/5;
 		return grid_pos;
+	}
+	
+	public static void output_map(OccupancyGridMap map)
+	{
+		PrintWriter writer = null;
+		int x;
+		int y;
+		
+		try
+		{
+			writer = new PrintWriter(MAP_FILE, "UTF-8");
+		} catch (FileNotFoundException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		int occupied;
+		if(writer != null)
+		{
+			for(x = 0; x<map.getWidth(); x++)
+			{
+				for(y = 0; y<map.getHeight(); y++)
+				{
+					occupied = map.getOccupied(x,y);
+					writer.print(occupied + ",");
+				}
+				writer.write("\n");
+			}
+		}
+		writer.close();
 	}
 }
