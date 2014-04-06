@@ -193,121 +193,6 @@ public class test
 		output_map(map);
 		
 		range.close();
-		
-		
-		
-		// Need return so we don't run other code...
-		if(Button.waitForAnyPress() > 0)
-		{
-			return;
-		}
-			
-		if(obj_range < SENSOR_MAX_RANGE)
-		{
-			LCD.drawString("Range: " + obj_range, 0, 6);
-			Button.waitForAnyPress();
-			range.close();
-			return;
-		}
-		
-		//while(true)
-		//{
-			// TODO: Find out what the hell units this returns, it's definitely not CM
-			// It appears to be in decimeters, and is somewhat accurate at closer ranges
-			// perhaps +/- 10%.
-			//double myRange = rangeAdapter.getRange();
-			//LCD.drawString("Range: " + myRange, 0, 5);
-			//int button = Button.waitForAnyPress();
-			//if(button != 2)
-			//	break;
-			//LCD.clear();
-		//}
-		
-		// Set up a feature detector with the range adapter and a min/max
-		// distance
-		// Searches for an object with a max distance of 100cm every 400ms.
-		//RangeFeatureDetector features = new RangeFeatureDetector(rangeAdapter,
-		//		100.0f, 400);
-		
-		//FeatureListener listener = new DetectedObjectListener(pilot, map, 
-		//		BOT_WIDTH, BOT_LENGTH);
-		// Add a lister to the feature detector
-		//features.addListener(listener);
-
-		//double length = rangeAdapter.getRange();
-		//double current_pos = length;
-		//LCD.drawString("Dist to edge: " + length, 0, 1);
-
-		// On our bot backward is forward.
-		//pilot.backward();
-		//pilot.rotate(90);
-		//pilot.travel(-100);
-		//LCD.drawString("Moved: " + pilot.getMovementIncrement(), 0, 6);
-		//LCD.drawString("Range Aft: " + rangeAdapter.getRange(), 0, 4);
-		// Forward is backward
-		//pilot.backward();
-		
-		HiTechnicCompass compass = new HiTechnicCompass(SensorPort.S4);
-		// Instantiate a new compass adaptor so we can get a direction.
-		DirectionFinderAdaptor dir = new DirectionFinderAdaptor(compass.getCompassMode());
-		
-		calibrate_compass(dir, pilot);
-		
-		//while(true)
-		//{
-		//	
-		//	LCD.drawString("Direction: " + dir.getDegreesCartesian(), 0, 6);
-		//	if(Button.waitForAnyPress() == 2)
-		//		break;
-		//	LCD.clear(6);
-		//}
-		
-		// Set speed to 10cm/s and then move 50cm
-		pilot.setAcceleration(MOTOR_ACCELERATION);
-		pilot.setRotateSpeed(ROTATE_SPEED);
-		pilot.setTravelSpeed(MOVE_SPEED);
-		
-		//mapper = new Thread(new mymapper(rangeAdapter, map, pilot));
-		
-		try
-		{
-			// Sleep for two seconds
-			Thread.sleep(10000);
-		}
-		catch(InterruptedException e)
-		{
-			return;
-		}
-		
-		// Set zero to be going forward (all directions now reference this
-		// as being zero).
-		dir.resetCartesianZero();
-		set_direction(0);
-		
-		// Units are in cm
-		for(int i = 0; i<15; i++)
-		{
-			LCD.clear(6);
-			pilot.travel(convert_cm_to_mm(-15));
-			float rot = 90;
-			//set_direction(rot);
-			pilot.rotate(rotation.get(90));
-			// Make any corrections
-			correct_angle(pilot, dir, rot);
-			LCD.drawString("Direction: " + dir.getDegreesCartesian(), 0, 6);
-		}
-		
-		//mapper.run();
-		// Positive rotations are CW and negative are CCW
-		
-		//pilot.travel(convert_cm_to_mm(-1));
-		//pilot.rotate(-1*rotation.get(90));
-		
-		Button.waitForAnyPress();
-		
-		// close the sensors that we're using
-		compass.close();
-		range.close();
 	}
 	
 	public static void moved_x(double amount)
@@ -323,29 +208,6 @@ public class test
 	public static double[] get_cur_pos()
 	{
 		return POS;
-	}
-	
-	// A method that will be able to be used to make course corrections
-	public static void correct_angle(DifferentialPilot pilot,
-			DirectionFinderAdaptor dir, double angle)
-	{
-		pilot.setRotateSpeed(400);
-		double t_direc = Math.abs(get_direction()+angle);
-		LCD.drawString("Dir: " + t_direc, 0, 4);
-		
-		double cur_direc = dir.getDegreesCartesian();
-		
-		while(cur_direc < t_direc-5 || cur_direc > t_direc+5)
-		{
-			LCD.clear(4);
-			// Try and correct itself in small increments, it may go all the way around in
-			// a circle.
-			// rotation is a hashmap that contains an approximate value for 90 degrees
-			pilot.rotate(rotation.get(90)/18);
-			cur_direc = dir.getDegreesCartesian();
-			LCD.drawString("Dir: " + t_direc, 0, 4);
-		}
-		set_direction(dir.getDegreesCartesian());
 	}
 	
 	// Perform the steps to calibrate the compass before we can use it
@@ -397,21 +259,6 @@ public class test
 	{
 		// Centimeters
 		return dm*10;
-	}
-	
-	public static int[] get_grid_location(RangeFinderAdaptor range,
-			DifferentialPilot pilot)
-	{
-		int[] grid_pos = new int[2];
-		double distance_y = range.getRange();
-		// Rotate 90 degrees
-		pilot.rotate(rotation.get(90));
-		double distance_x = range.getRange();
-		
-		// Make my grid position
-		grid_pos[0] = (int)distance_x/5;
-		grid_pos[1] = (int)distance_y/5;
-		return grid_pos;
 	}
 	
 	// Write out a csv file with obstacles mapped (as best we could)
