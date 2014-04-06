@@ -1,7 +1,7 @@
 /*
  * Author: Daniel Mather
- * Purpose: Some testing code for our COMP-3012 term project...
- * testing out more advanced concepts. 
+ * Purpose: A very basic robot that does some mapping (albeit poor,
+ * but mapping nonetheless).
  */
 
 // Giant block of imports
@@ -22,12 +22,13 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
-public class test
+public class MappingBot
 {
 	/*
 	 * Initialize all constant variables here. All of these should be in CM or
 	 * CM/S.
 	 */
+	
 	// track width is distance between wheels
 	static final double TRACK_WIDTH = 16f;
 	// Track length is wheel diameter
@@ -46,19 +47,23 @@ public class test
 	static final int BOT_LENGTH = 30;
 	static final int OCCUPIED_THRESHOLD = 1;
 	static final int FREE_THRESHOLD = 0;
-	// Hash map for rotation angles
-	static HashMap<Integer, Double> rotation; 
-	static Thread mapper;
-	// Offset is negative because the sensor is reading too far
+	// Offset is negative because the sensor is readings are usually too far
 	static final double RANGE_SENSOR_OFFSET = -4.25;
-	// Readings around 90 are just too flaky, we also have to account for the
+	// Readings around 90 are just too crappy, we also have to account for the
 	// offset in this as well.
 	static final double SENSOR_MAX_RANGE = 50 + RANGE_SENSOR_OFFSET;
 	// Bot origin is the bots center point in respect to origin (0,0)
 	// this is in x, y
 	static final double[] BOT_ORIGIN = {BOT_WIDTH/2, BOT_LENGTH/2};
 	static double[] POS = BOT_ORIGIN;
+	
 	static String MAP_FILE = "/map.csv";
+	// Hash map for rotation angles
+	static HashMap<Integer, Double> rotation; 
+	// I wasn't able to do mapping this way...oh well maybe  next time.
+	//static Thread mapper;
+	// 10.0.1.5 is the fixed IP of my laptop on bluetooth
+	static Communication comm = new Communication("10.0.1.5");
 
 	public static void main(String[] args)
 	{
@@ -137,10 +142,19 @@ public class test
 		// for our map) + a certain amount of error
 		for(double distance_moved = 0; distance_moved + BOT_WIDTH + 20 < map.getWidth()*5; distance_moved += fixed_travel_amount)
 		{
+			// Just print out the distance that the robot thinks that it has
+			// moved.
 			LCD.drawString("Dist Moved: " + distance_moved, 0, 2);
+			
 			cur_x =  (int)POS[0]/5;
 			cur_y = (int)POS[1]/5;
+			// Offset the range by our offset factor, this was done
+			// with a bunch of tests for distance.
 			obj_range = convert_dm_to_cm(rangeAdapter.getRange()) + RANGE_SENSOR_OFFSET;
+			
+			// If the distance is greater than the max range (out of the
+			// max range most of the readings are lost in the noise)
+			// Then proceed, otherwise move forward one 5cm increment.
 			if(obj_range < SENSOR_MAX_RANGE)
 			{
 				LCD.drawString("Range: " + obj_range, 0, 4);
@@ -168,6 +182,8 @@ public class test
 					}
 					else
 					{
+						// If a spot isn't occupied set it to be the first
+						// level of occupied.
 						map.setOccupied(cur_x, i, 1);
 					}
 				}
@@ -181,19 +197,29 @@ public class test
 		
 		output_map(map);
 		
+		// Sending data like this does work.
+		comm.send_stuff("You have a message!!");
+		
+		// Closing the sensor resource..lets avoid resource leakages if we can
 		range.close();
 	}
 	
+	// After the bot has moved this updates the correct
+	// axis that it moved in.
 	public static void moved_x(double amount)
 	{
 		POS[0] = BOT_ORIGIN[0] + amount;
 	}
 	
+	// After the bot has moved this updates the correct
+	// axis that it moved in.
 	public static void moved_y(double amount)
 	{
 		POS[1] = BOT_ORIGIN[1] + amount;
 	}
 	
+	// Get our bots current position (this method isn't really
+	// neccesary since it's a global object).
 	public static double[] get_cur_pos()
 	{
 		return POS;
@@ -215,7 +241,10 @@ public class test
 		return dm*10;
 	}
 	
-	// Write out a csv file with obstacles mapped (as best we could)
+	// Write out a csv file with obstacles mapped (as best as we could)
+	// Our map is almost like a heat map, where the hotter the temperature
+	// the bigger the number, in this case it's the more likely the spot
+	// is occupied the larger the number is.
 	public static void output_map(OccupancyGridMap map)
 	{
 		PrintWriter writer = null;
