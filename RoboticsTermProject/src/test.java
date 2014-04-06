@@ -64,7 +64,8 @@ public class test
 	static final double RANGE_SENSOR_OFFSET = -4.25;
 	// Readings around 90 are just too flaky, we also have to account for the
 	// offset in this as well.
-	static final double SENSOR_MAX_RANGE = 75 + RANGE_SENSOR_OFFSET;
+	//static final double SENSOR_MAX_RANGE = 75 + RANGE_SENSOR_OFFSET;
+	static final double SENSOR_MAX_RANGE = 60;
 	// Bot origin is the bots center point in respect to origin (0,0)
 	// this is in x, y
 	static final double[] BOT_ORIGIN = {BOT_WIDTH/2, BOT_LENGTH/2};
@@ -171,6 +172,7 @@ public class test
 					occupied_num = map.getOccupied(cur_x, i);
 					if(occupied_num > 0)
 					{
+						// Increase the assurance that a spot is occupied
 						occupied_num += 1;
 						map.setOccupied(cur_x, i, occupied_num);
 						LCD.drawString("Pos: " + i + "," + cur_y + " occupied", 0, 5);
@@ -180,12 +182,12 @@ public class test
 						map.setOccupied(cur_x, i, 1);
 					}
 				}
-				pilot.travel(convert_cm_to_mm(-fixed_travel_amount));
-				moved_x(fixed_travel_amount);
-				LCD.clear(4);
-				LCD.clear(3);
-				LCD.clear(2);
 			}
+			pilot.travel(convert_cm_to_mm(-fixed_travel_amount));
+			moved_x(fixed_travel_amount);
+			LCD.clear(4);
+			LCD.clear(3);
+			LCD.clear(2);
 		}
 		
 		output_map(map);
