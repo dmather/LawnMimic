@@ -8,29 +8,19 @@
 import lejos.hardware.Button;
 import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.Motor;
-import lejos.hardware.port.Port;
+//import lejos.hardware.port.Port;
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3IRSensor;
-import lejos.hardware.sensor.EV3ColorSensor;
-import lejos.hardware.sensor.SensorModes;
-import lejos.robotics.Color;
+//import lejos.hardware.sensor.EV3ColorSensor;
+//import lejos.robotics.Color;
 import lejos.robotics.navigation.DifferentialPilot;
 import lejos.robotics.RangeFinderAdaptor;
 import lejos.robotics.mapping.OccupancyGridMap;
-import lejos.robotics.objectdetection.RangeFeatureDetector;
-import lejos.robotics.objectdetection.FeatureListener;
-import lejos.robotics.objectdetection.Feature;
-import lejos.robotics.localization.OdometryPoseProvider;
-import lejos.hardware.sensor.HiTechnicCompass;
-import lejos.robotics.DirectionFinder;
-import lejos.robotics.DirectionFinderAdaptor;
 
 import java.util.HashMap;
-import java.lang.Math;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.Stack;
 
 public class test
 {
@@ -59,7 +49,6 @@ public class test
 	// Hash map for rotation angles
 	static HashMap<Integer, Double> rotation; 
 	static Thread mapper;
-	static private double heading;
 	// Offset is negative because the sensor is reading too far
 	static final double RANGE_SENSOR_OFFSET = -4.25;
 	// Readings around 90 are just too flaky, we also have to account for the
@@ -208,41 +197,6 @@ public class test
 	public static double[] get_cur_pos()
 	{
 		return POS;
-	}
-	
-	// Perform the steps to calibrate the compass before we can use it
-	public static void calibrate_compass(DirectionFinderAdaptor dir,
-			DifferentialPilot pilot)
-	{
-		// Slow down our rotation for calibration
-		pilot.setRotateSpeed(90);
-		// Start the calibration, we need to rotate at least 2 times, in 40 seconds
-		dir.startCalibration();
-		// Rotate two full circles
-		// 720 is 8 90 degree rotations, look at the 90 degree declaration in
-		// rotate to see what 90 degrees actually is.
-		pilot.rotate(8*rotation.get(90));
-		dir.stopCalibration();
-				
-		try
-		{
-			// Sleep for two seconds
-			Thread.sleep(2000);
-		}
-		catch(InterruptedException e)
-		{
-			return;
-		}
-	}
-	
-	public static double get_direction()
-	{
-		return heading;
-	}
-	
-	public static void set_direction(float dir)
-	{
-		heading = dir;
 	}
 	
 	public static double convert_mm_to_cm(double mm)
