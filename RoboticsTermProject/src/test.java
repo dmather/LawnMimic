@@ -64,7 +64,7 @@ public class test
 	static final double RANGE_SENSOR_OFFSET = -4.25;
 	// Readings around 90 are just too flaky, we also have to account for the
 	// offset in this as well.
-	static final double SENSOR_MAX_RANGE = 80 + RANGE_SENSOR_OFFSET;
+	static final double SENSOR_MAX_RANGE = 75 + RANGE_SENSOR_OFFSET;
 	// Bot origin is the bots center point in respect to origin (0,0)
 	// this is in x, y
 	static final double[] BOT_ORIGIN = {BOT_WIDTH/2, BOT_LENGTH/2};
@@ -116,17 +116,17 @@ public class test
 				LCD.drawString("Range: " + obj_range, 0, 4);
 				LCD.drawString("POS: " + POS[0] + "," + POS[1], 0, 3);
 				// Assume increments are in 5cm
-				for(int i = cur_x + (int)obj_range/5; i<=map.getWidth(); i+=5)
+				for(int i = cur_x + (int)obj_range/5; i<map.getWidth(); i++)
 				{
-					try
-					{
-						// Sleep for half a second
-						Thread.sleep(500);
-					}
-					catch(InterruptedException e)
-					{
-						return;
-					}
+					//try
+					//{
+					//	// Sleep for half a second
+					//	Thread.sleep(100);
+					//}
+					//catch(InterruptedException e)
+					//{
+					//	return;
+					//}
 					LCD.clear(5);
 					map.setOccupied(i, cur_y, 1);
 					LCD.drawString("Pos: " + i + "," + cur_y + " occupid", 0, 5);
@@ -156,22 +156,23 @@ public class test
 				LCD.drawString("Range: " + obj_range, 0, 4);
 				LCD.drawString("POS: " + cur_x + "," + cur_y, 0, 3);
 				// Assume increments are in 5cm
-				for(int i = cur_y + (int)obj_range/5; i<=map.getHeight(); i+=5)
+				for(int i = cur_y - (int)obj_range/5; i>0; i--)
 				{
-					try
-					{
-						// Sleep for half a second
-						Thread.sleep(500);
-					}
-					catch(InterruptedException e)
-					{
-						return;
-					}
+					//try
+					//{
+					//	// Sleep for half a second
+					//	Thread.sleep(100);
+					//}
+					//catch(InterruptedException e)
+					//{
+					//	return;
+					//}
 					LCD.clear(5);
 					occupied_num = map.getOccupied(cur_x, i);
-					if(occupied_num == 1)
+					if(occupied_num > 0)
 					{
-						map.setOccupied(cur_x, i, occupied_num += 1);
+						occupied_num += 1;
+						map.setOccupied(cur_x, i, occupied_num);
 						LCD.drawString("Pos: " + i + "," + cur_y + " occupied", 0, 5);
 					}
 					else
@@ -411,6 +412,7 @@ public class test
 		return grid_pos;
 	}
 	
+	// Write out a csv file with obstacles mapped (as best we could)
 	public static void output_map(OccupancyGridMap map)
 	{
 		PrintWriter writer = null;
@@ -420,11 +422,13 @@ public class test
 		try
 		{
 			writer = new PrintWriter(MAP_FILE, "UTF-8");
-		} catch (FileNotFoundException e)
+		} 
+		catch (FileNotFoundException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (UnsupportedEncodingException e)
+		} 
+		catch (UnsupportedEncodingException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
