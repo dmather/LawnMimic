@@ -64,8 +64,7 @@ public class test
 	static final double RANGE_SENSOR_OFFSET = -4.25;
 	// Readings around 90 are just too flaky, we also have to account for the
 	// offset in this as well.
-	//static final double SENSOR_MAX_RANGE = 75 + RANGE_SENSOR_OFFSET;
-	static final double SENSOR_MAX_RANGE = 60;
+	static final double SENSOR_MAX_RANGE = 50 + RANGE_SENSOR_OFFSET;
 	// Bot origin is the bots center point in respect to origin (0,0)
 	// this is in x, y
 	static final double[] BOT_ORIGIN = {BOT_WIDTH/2, BOT_LENGTH/2};
@@ -117,17 +116,17 @@ public class test
 				LCD.drawString("Range: " + obj_range, 0, 4);
 				LCD.drawString("POS: " + POS[0] + "," + POS[1], 0, 3);
 				// Assume increments are in 5cm
-				for(int i = cur_x + (int)obj_range/5; i<map.getWidth(); i++)
+				for(int i = (cur_x + (int)obj_range)/5; i<map.getWidth(); i++)
 				{
-					//try
-					//{
-					//	// Sleep for half a second
-					//	Thread.sleep(100);
-					//}
-					//catch(InterruptedException e)
-					//{
-					//	return;
-					//}
+					try
+					{
+						// Sleep for 1/10 of a second
+						Thread.sleep(100);
+					}
+					catch(InterruptedException e)
+					{
+						return;
+					}
 					LCD.clear(5);
 					map.setOccupied(i, cur_y, 1);
 					LCD.drawString("Pos: " + i + "," + cur_y + " occupid", 0, 5);
@@ -145,8 +144,9 @@ public class test
 		
 		int occupied_num;
 		
-		// This loop will move forward (or in the height attribute for our map)
-		for(double distance_moved = 0; distance_moved + BOT_WIDTH + 15 < map.getWidth()*5; distance_moved += fixed_travel_amount)
+		// This loop will move forward (or in the width attribute
+		// for our map) + a certain amount of error
+		for(double distance_moved = 0; distance_moved + BOT_WIDTH + 20 < map.getWidth()*5; distance_moved += fixed_travel_amount)
 		{
 			LCD.drawString("Dist Moved: " + distance_moved, 0, 2);
 			cur_x =  (int)POS[0]/5;
@@ -157,17 +157,17 @@ public class test
 				LCD.drawString("Range: " + obj_range, 0, 4);
 				LCD.drawString("POS: " + cur_x + "," + cur_y, 0, 3);
 				// Assume increments are in 5cm
-				for(int i = cur_y - (int)obj_range/5; i>0; i--)
+				for(int i = (cur_y - (int)obj_range)/5; i>0; i--)
 				{
-					//try
-					//{
-					//	// Sleep for half a second
-					//	Thread.sleep(100);
-					//}
-					//catch(InterruptedException e)
-					//{
-					//	return;
-					//}
+					try
+					{
+						// Sleep for 1/10 of a second
+						Thread.sleep(100);
+					}
+					catch(InterruptedException e)
+					{
+						return;
+					}
 					LCD.clear(5);
 					occupied_num = map.getOccupied(cur_x, i);
 					if(occupied_num > 0)
