@@ -99,6 +99,8 @@ public class MappingBot
 		int fixed_travel_amount = 5;
 		
 		// This loop will move forward (or in the height attribute for our map)
+		// Yes I know this loop and the next loop are basically the same thing
+		// and are basically duplicate code, I just needed to get this working
 		for(double distance_moved = 0; distance_moved + BOT_LENGTH + 5 < map.getHeight()*5; distance_moved += fixed_travel_amount)
 		{
 			LCD.drawString("Dist Moved: " + distance_moved, 0, 2);
@@ -197,29 +199,26 @@ public class MappingBot
 		
 		output_map(map);
 		
-		// Sending data like this does work.
-		comm.send_stuff("You have a message!!");
-		
 		// Closing the sensor resource..lets avoid resource leakages if we can
 		range.close();
 	}
 	
-	// After the bot has moved this updates the correct
+	// After the robot has moved this updates the correct
 	// axis that it moved in.
 	public static void moved_x(double amount)
 	{
 		POS[0] = BOT_ORIGIN[0] + amount;
 	}
 	
-	// After the bot has moved this updates the correct
+	// After the robot has moved this updates the correct
 	// axis that it moved in.
 	public static void moved_y(double amount)
 	{
 		POS[1] = BOT_ORIGIN[1] + amount;
 	}
 	
-	// Get our bots current position (this method isn't really
-	// neccesary since it's a global object).
+	// Get our bot's current position (this method isn't really
+	// necessary since it's a global object).
 	public static double[] get_cur_pos()
 	{
 		return POS;
@@ -241,7 +240,7 @@ public class MappingBot
 		return dm*10;
 	}
 	
-	// Write out a csv file with obstacles mapped (as best as we could)
+	// Write out a .csv file with obstacles mapped (as best as we could)
 	// Our map is almost like a heat map, where the hotter the temperature
 	// the bigger the number, in this case it's the more likely the spot
 	// is occupied the larger the number is.
@@ -250,6 +249,10 @@ public class MappingBot
 		PrintWriter writer = null;
 		int x;
 		int y;
+		// We're just appending to this string so it can be initialized blank.
+		// This is specifically for the csv string that contains the map
+		// information.
+		String results = "";
 		
 		try
 		{
@@ -273,11 +276,23 @@ public class MappingBot
 				for(y = 0; y<map.getHeight(); y++)
 				{
 					occupied = map.getOccupied(x,y);
+					// This duplication is actually to ensure that the map
+					// is saved both locally on EV3 and remotely on my laptop
+					// if it is listening to the TCP socket.
+					results += occupied + ",";
 					writer.print(occupied + ",");
 				}
+				// Windows newline don't just use the newline character
+				// and must be declared as carriage-return newline instead
+				// of just newline.
+				results += "\r\n";
 				writer.write("\n");
 			}
 		}
+		// Sending results or mapping data over the Bluetooth PAN connection
+		// that is established on my laptop.
+		comm.send_stuff(results);
+		
 		writer.close();
 	}
 }
