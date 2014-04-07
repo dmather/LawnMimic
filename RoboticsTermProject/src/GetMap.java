@@ -16,11 +16,14 @@ public class GetMap
 		PrintWriter writer = null;
 		Communication EV3 = new Communication("192.168.74.1");
 		String message;
+		// Change this if you want this program to save to a different
+		// location.
+		String map_file_path = "C:\\Users\\Daniel Mather\\My Documents\\map.csv";
 
 		// This is probably a bad way to handle this
 		try
 		{
-			writer = new PrintWriter("C:\\Users\\Daniel Mather\\My Documents\\map.csv", "UTF-8");
+			writer = new PrintWriter(map_file_path, "UTF-8");
 		} 
 		catch (FileNotFoundException e)
 		{
@@ -41,6 +44,6 @@ public class GetMap
 		}
 		// Don't leave file handles open...
 		writer.close();
-
+		System.out.println("Map contents saved in: " + map_file_path + "!");
 	}
 }

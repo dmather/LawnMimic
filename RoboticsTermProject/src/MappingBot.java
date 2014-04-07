@@ -104,7 +104,7 @@ public class MappingBot
 		for(double distance_moved = 0; distance_moved + BOT_LENGTH + 5 < map.getHeight()*5; distance_moved += fixed_travel_amount)
 		{
 			LCD.drawString("Dist Moved: " + distance_moved, 0, 2);
-			cur_x =  (int)POS[0]/5;
+			cur_x = (int)POS[0]/5;
 			cur_y = (int)POS[1]/5;
 			obj_range = convert_dm_to_cm(rangeAdapter.getRange()) + RANGE_SENSOR_OFFSET;
 			if(obj_range < SENSOR_MAX_RANGE)
@@ -112,7 +112,7 @@ public class MappingBot
 				LCD.drawString("Range: " + obj_range, 0, 4);
 				LCD.drawString("POS: " + POS[0] + "," + POS[1], 0, 3);
 				// Assume increments are in 5cm
-				for(int i = (cur_x + (int)obj_range)/5; i<map.getWidth(); i++)
+				for(int i = cur_x + (int)obj_range/5; i<map.getWidth(); i++)
 				{
 					try
 					{
@@ -148,7 +148,7 @@ public class MappingBot
 			// moved.
 			LCD.drawString("Dist Moved: " + distance_moved, 0, 2);
 			
-			cur_x =  (int)POS[0]/5;
+			cur_x = (int)POS[0]/5;
 			cur_y = (int)POS[1]/5;
 			// Offset the range by our offset factor, this was done
 			// with a bunch of tests for distance.
@@ -162,7 +162,7 @@ public class MappingBot
 				LCD.drawString("Range: " + obj_range, 0, 4);
 				LCD.drawString("POS: " + cur_x + "," + cur_y, 0, 3);
 				// Assume increments are in 5cm
-				for(int i = (cur_y - (int)obj_range)/5; i>0; i--)
+				for(int i = cur_y - (int)obj_range/5; i>0; i--)
 				{
 					try
 					{
@@ -190,6 +190,7 @@ public class MappingBot
 					}
 				}
 			}
+			// We're Traveling in a negative direction to go forward
 			pilot.travel(convert_cm_to_mm(-fixed_travel_amount));
 			moved_x(fixed_travel_amount);
 			LCD.clear(4);
